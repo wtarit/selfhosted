@@ -1,0 +1,19 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+      - open-webui:/app/backend/data
+    # mem_limit: 150M
+
+  pipelines:
+    image: ghcr.io/open-webui/pipelines:main
+    volumes:
+      - pipelines:/app/pipelines
+    # mem_limit: 100M
+
+volumes:
+  open-webui:
+  pipelines:
