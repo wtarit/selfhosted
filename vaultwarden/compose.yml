@@ -1,6 +1,6 @@
 services:
   vaultwarden:
-    image: vaultwarden/server:1.32.3
+    image: vaultwarden/server:1.33.2
     container_name: vaultwarden
     restart: always
     environment:
@@ -13,6 +13,9 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SIGNUPS_ALLOWED: ${SIGNUPS_ALLOWED} # Deactivate this with "false" after you have created your account so that no strangers can register
     volumes:
-      - ./vw-data:/data # the path before the : can be changed
+      - vaultdata:/data # the path before the : can be changed
     ports:
       - 11001:80 # you can replace the 11001 with your preferred port
+
+volumes:
+  vaultdata:
