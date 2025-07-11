@@ -21,6 +21,8 @@ services:
     image: ttionya/vaultwarden-backup:latest
     restart: always
     environment:
+      RCLONE_REMOTE_NAME: "vaultwardenbackup"
+      RCLONE_REMOTE_DIR: "/vaultwardenbackup/"
       MAIL_SMTP_ENABLE: "TRUE"
       MAIL_SMTP_VARIABLES: "-S smtp-use-starttls \
         -S smtp=smtp://${SMTP_HOST}:587 \
