@@ -7,8 +7,8 @@ services:
       DOMAIN: ${DOMAIN} # required when using a reverse proxy; your domain; vaultwarden needs to know it's https to work properly with attachments
       SMTP_HOST: ${SMTP_HOST}
       SMTP_FROM: ${SMTP_FROM}
-      SMTP_PORT: 465
-      SMTP_SECURITY: "force_tls"
+      SMTP_PORT: 587
+      SMTP_SECURITY: "starttls"
       SMTP_USERNAME: ${SMTP_USERNAME}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SIGNUPS_ALLOWED: ${SIGNUPS_ALLOWED} # Deactivate this with "false" after you have created your account so that no strangers can register
@@ -17,5 +17,27 @@ services:
     ports:
       - 11001:80 # you can replace the 11001 with your preferred port
 
+  backup:
+    image: ttionya/vaultwarden-backup:latest
+    restart: always
+    environment:
+      MAIL_SMTP_ENABLE: "TRUE"
+      MAIL_SMTP_VARIABLES: "-S smtp-use-starttls \
+        -S smtp=smtp://${SMTP_HOST}:587 \
+        -S smtp-auth=login \
+        -S smtp-auth-user=${SMTP_USERNAME} \
+        -S smtp-auth-password=${SMTP_PASSWORD} \
+        -S from=${SMTP_FROM}"
+      MAIL_TO: ${SMTP_TO}
+      MAIL_WHEN_SUCCESS: "TRUE"
+      MAIL_WHEN_FAILURE: "TRUE"
+      TIMEZONE: "ICT"
+    volumes:
+      - vaultdata:/bitwarden/data/
+      - vaultwarden-rclone-data:/config/
+
 volumes:
   vaultdata:
+  vaultwarden-rclone-data:
+    external: true
+    name: vaultwarden-rclone-data
