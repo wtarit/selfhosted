@@ -23,16 +23,7 @@ services:
     environment:
       RCLONE_REMOTE_NAME: "vaultwardenbackup"
       RCLONE_REMOTE_DIR: "/vaultwardenbackup/"
-      MAIL_SMTP_ENABLE: "TRUE"
-      MAIL_SMTP_VARIABLES: "-S smtp-use-starttls \
-        -S smtp=smtp://${SMTP_HOST}:587 \
-        -S smtp-auth=login \
-        -S smtp-auth-user=${SMTP_USERNAME} \
-        -S smtp-auth-password=${SMTP_PASSWORD} \
-        -S from=${SMTP_FROM}"
-      MAIL_TO: ${SMTP_TO}
-      MAIL_WHEN_SUCCESS: "TRUE"
-      MAIL_WHEN_FAILURE: "TRUE"
+      PING_URL_WHEN_SUCCESS: ${PING_URL_WHEN_SUCCESS}
       TIMEZONE: "ICT"
     volumes:
       - vaultdata:/bitwarden/data/
