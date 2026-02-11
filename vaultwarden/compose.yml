@@ -2,7 +2,7 @@ services:
   vaultwarden:
     image: vaultwarden/server:1.35.3
     container_name: vaultwarden
-    restart: always
+    restart: unless-stopped
     environment:
       DOMAIN: ${DOMAIN} # required when using a reverse proxy; your domain; vaultwarden needs to know it's https to work properly with attachments
       SMTP_HOST: ${SMTP_HOST}
@@ -14,17 +14,24 @@ services:
       SIGNUPS_ALLOWED: ${SIGNUPS_ALLOWED} # Deactivate this with "false" after you have created your account so that no strangers can register
     volumes:
       - vaultdata:/data # the path before the : can be changed
-    ports:
-      - 11001:80 # you can replace the 11001 with your preferred port
+    # ports:
+    #   - 11001:80 # you can replace the 11001 with your preferred port
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
 
   backup:
     image: ttionya/vaultwarden-backup:latest
-    restart: always
+    restart: unless-stopped
     environment:
       RCLONE_REMOTE_NAME: "vaultwardenbackup"
       RCLONE_REMOTE_DIR: "/vaultwardenbackup/"
       PING_URL_WHEN_SUCCESS: ${PING_URL_WHEN_SUCCESS}
-      TIMEZONE: "ICT"
+      TIMEZONE: "PDT"
     volumes:
       - vaultdata:/bitwarden/data/
       - vaultwarden-rclone-data:/config/
