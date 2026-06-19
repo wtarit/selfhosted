@@ -1,3 +1,5 @@
+name: uptimekuma
+
 services:
   uptime-kuma:
     image: louislam/uptime-kuma:2
