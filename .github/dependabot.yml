@@ -6,7 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: "docker-compose" # See documentation for possible values
-    directory: 
+    directories: 
       - "vaultwarden/" # Location of package manifests
       - "uptimekuma/"
     schedule:
