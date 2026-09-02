@@ -9,5 +9,6 @@ updates:
     directories: 
       - "vaultwarden/" # Location of package manifests
       - "uptimekuma/"
+      - "portainer/"
     schedule:
       interval: "weekly"

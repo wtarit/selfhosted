@@ -2,7 +2,7 @@ name: vaultwarden
 
 services:
   vaultwarden:
-    image: vaultwarden/server:1.37.2
+    image: vaultwarden/server:1.37.2@sha256:094b5689ed81549bd293418395c7cf495ae9d960fc2d4928cef2083ef913d912
     container_name: vaultwarden
     restart: unless-stopped
     environment:
@@ -20,7 +20,7 @@ services:
     #   - 11001:80 # you can replace the 11001 with your preferred port
 
   tunnel:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.8.3@sha256:51c9cefcb4569df44e1ad403ab1d3d8065aa8e84339bcfc6aee75502e1140339
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:
