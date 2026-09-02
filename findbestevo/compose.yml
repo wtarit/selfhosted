@@ -1,6 +1,0 @@
-services:
-  findbestevo:
-    image: ghcr.io/wtarit/findbestevo:2d5d0bbf41e1d1df12b0e216decd6f15b6d606df
-    ports:
-      - 3100:3000
-    restart: unless-stopped
