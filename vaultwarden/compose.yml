@@ -20,7 +20,7 @@ services:
     #   - 11001:80 # you can replace the 11001 with your preferred port
 
   tunnel:
-    image: cloudflare/cloudflared:2026.10.2@sha256:0e56c13c7058fcef9c4f0e7d83372f82330548dbf8f8b366f3d8b506526d93b2
+    image: cloudflare/cloudflared:2026.10.5@sha256:1b1d34d0a9c0bfca9de72db8460d328db3f19edd2b96169114e3e893a97bbe53
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:
