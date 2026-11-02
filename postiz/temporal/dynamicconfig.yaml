@@ -1,0 +1,10 @@
+# Temporal dynamic config, based on Temporal's development-sql.yaml sample.
+limit.maxIDLength:
+  - value: 255
+    constraints: {}
+# Postiz registers its search attributes at startup and uses them right away.
+# Refreshing the cache on read avoids "search attribute not defined" errors in
+# that window; Temporal advises against it at scale, which this setup is not.
+system.forceSearchAttributesCacheRefreshOnRead:
+  - value: true
+    constraints: {}

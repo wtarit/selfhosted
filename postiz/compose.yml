@@ -1,0 +1,141 @@
+name: postiz
+
+# Leaner than the official compose (github.com/gitroomhq/postiz-docker-compose):
+# one Postgres server holds the Postiz and Temporal databases, and Temporal uses
+# its SQL visibility store instead of Elasticsearch. Temporal's schema is
+# created or upgraded by the one-shot temporal-schema container on every deploy.
+# Postiz is reached only through the Cloudflare tunnel; no ports are published.
+
+x-temporal-db: &temporal-db
+  DB: postgres12
+  DB_PORT: 5432
+  POSTGRES_SEEDS: postgres
+  POSTGRES_USER: postiz
+  POSTGRES_PWD: ${POSTGRES_PASSWORD:?}
+  SQL_PASSWORD: ${POSTGRES_PASSWORD:?}
+
+services:
+  postiz:
+    image: ghcr.io/gitroomhq/postiz-app:v2.25.3@sha256:1e376ff2cb781022d528f171719cf174cf693a985a30cb40eefb13eae3ddda13
+    restart: unless-stopped
+    environment:
+      MAIN_URL: ${POSTIZ_URL:?}
+      FRONTEND_URL: ${POSTIZ_URL:?}
+      NEXT_PUBLIC_BACKEND_URL: ${POSTIZ_URL:?}/api
+      BACKEND_INTERNAL_URL: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET:?}
+      DATABASE_URL: postgresql://postiz:${POSTGRES_PASSWORD:?}@postgres:5432/postiz
+      REDIS_URL: redis://redis:6379
+      TEMPORAL_ADDRESS: temporal:7233
+      IS_GENERAL: "true"
+      DISABLE_REGISTRATION: ${DISABLE_REGISTRATION:-false} # set true after creating your account
+      RUN_CRON: "true"
+      STORAGE_PROVIDER: local
+      UPLOAD_DIRECTORY: /uploads
+      NEXT_PUBLIC_UPLOAD_DIRECTORY: /uploads
+      API_LIMIT: 30
+    env_file:
+      # Social platform and AI API keys; see social.env.sample
+      - path: social.env
+        required: false
+    volumes:
+      - postiz-config:/config
+      - postiz-uploads:/uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "const r=require('http').get('http://localhost:5000/',res=>process.exit(res.statusCode<500?0:1));r.on('error',()=>process.exit(1));r.setTimeout(4000,()=>{r.destroy();process.exit(1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+      temporal-namespace:
+        condition: service_completed_successfully
+
+  postgres:
+    image: postgres:17.11-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postiz
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: postiz
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postiz -d postiz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7.4.12-alpine@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  temporal-schema:
+    image: temporalio/admin-tools:1.32.1@sha256:9ef0dc5b063bf4ffd5c1512de72e0e73e225bd2c7006a18ce69bd592a8862a83
+    restart: on-failure:3
+    environment: *temporal-db
+    volumes:
+      - ./temporal:/scripts:ro
+    entrypoint: ["/bin/sh", "/scripts/setup-schema.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  temporal:
+    image: temporalio/server:1.32.1@sha256:acecbab5b0b8ae9cf4012b508866ca97feda3709577bf157b537239f40029049
+    restart: unless-stopped
+    environment:
+      <<: *temporal-db
+      BIND_ON_IP: 0.0.0.0
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/postiz.yaml
+    volumes:
+      - ./temporal/dynamicconfig.yaml:/etc/temporal/config/dynamicconfig/postiz.yaml:ro
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "7233"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    depends_on:
+      temporal-schema:
+        condition: service_completed_successfully
+
+  temporal-namespace:
+    image: temporalio/admin-tools:1.32.1@sha256:9ef0dc5b063bf4ffd5c1512de72e0e73e225bd2c7006a18ce69bd592a8862a83
+    restart: on-failure:3
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+    volumes:
+      - ./temporal:/scripts:ro
+    entrypoint: ["/bin/sh", "/scripts/create-namespace.sh"]
+    depends_on:
+      temporal:
+        condition: service_healthy
+
+  tunnel:
+    image: cloudflare/cloudflared:2026.10.2@sha256:0e56c13c7058fcef9c4f0e7d83372f82330548dbf8f8b366f3d8b506526d93b2
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?}
+
+volumes:
+  postiz-config:
+  postiz-uploads:
+  postgres-data:
+  redis-data:
