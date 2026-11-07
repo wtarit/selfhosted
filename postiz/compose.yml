@@ -86,7 +86,7 @@ services:
       start_period: 5s
 
   temporal-schema:
-    image: temporalio/admin-tools:1.32.1@sha256:9ef0dc5b063bf4ffd5c1512de72e0e73e225bd2c7006a18ce69bd592a8862a83
+    image: temporalio/admin-tools:1.32.2@sha256:4a95866efba29d7e17ab012df5232795e8b0ad0f7d5f9d1ec4df321f7792a754
     restart: on-failure:3
     environment: *temporal-db
     volumes:
@@ -116,7 +116,7 @@ services:
         condition: service_completed_successfully
 
   temporal-namespace:
-    image: temporalio/admin-tools:1.32.1@sha256:9ef0dc5b063bf4ffd5c1512de72e0e73e225bd2c7006a18ce69bd592a8862a83
+    image: temporalio/admin-tools:1.32.2@sha256:4a95866efba29d7e17ab012df5232795e8b0ad0f7d5f9d1ec4df321f7792a754
     restart: on-failure:3
     environment:
       TEMPORAL_ADDRESS: temporal:7233
