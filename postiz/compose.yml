@@ -74,7 +74,7 @@ services:
       start_period: 10s
 
   redis:
-    image: redis:7.4.12-alpine@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f
+    image: redis:8.10.2-alpine@sha256:9f8d2d789b9a1d1e3f283f979aa9cbf393373806472e1ccd460e2f9c869b833b
     restart: unless-stopped
     volumes:
       - redis-data:/data
